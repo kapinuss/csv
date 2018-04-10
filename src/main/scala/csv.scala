@@ -1,9 +1,23 @@
 import java.io.File
-import java.net.URL
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.stream.ActorMaterializer
 import com.github.tototoshi.csv.{CSVReader, CSVWriter}
+
+case class Login (user: String, ip: String, dateTime: LocalDateTime)
+object Login {
+  val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+  def apply(nick: String, ip: String, dateTime: String): Login = new Login(nick, ip, performDate(dateTime))
+  def performDate(dateTime: String): LocalDateTime = LocalDateTime.parse(dateTime, formatter)
+}
+case class PluralLogin(ip: String, start: String, stop: String, users: String)//users = ip1:time1,ip2:time2
+object PluralLogin {
+  val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+  def apply(nick: String, ip: String, dateTime: String): Login = new Login(nick, ip, performDate(dateTime))
+  def performDate(dateTime: String): LocalDateTime = LocalDateTime.parse(dateTime, formatter)
+}
 
 object csv {
 
@@ -12,11 +26,8 @@ object csv {
 
   def main(args: Array[String]): Unit = {
 
-    val x: List[List[String]] = readCsv("logins0.csv")
-    println(x.size)
-    writeScv("result.csv", x)
-    val y: List[List[String]] = readCsv("result.csv")
-    println(y.size)
+    val rawLogins: List[List[String]] = readCsv("logins0.csv")
+    val logins: List[Login] = rawLogins.map(login => Login(login.head, login(1), login.last))
 
   }
 
