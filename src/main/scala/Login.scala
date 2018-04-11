@@ -12,12 +12,13 @@ object LoginWithDate {
 
   def performDate(dateTime: String): LocalDateTime = LocalDateTime.parse(dateTime, formatter)
 
-  def isOften(logins: List[LoginWithDate]): Boolean = {
-    val timePoints = logins.map(_.dateTime)
-    val tuples = timePoints.zip(timePoints.tail)
-    println(tuples)
-    true
+  def isOften(logins: List[LoginWithDate], hours: Int): Boolean = {
+    val timePoints: List[LocalDateTime] = logins.map(_.dateTime)
+    val tuples: List[(LocalDateTime, LocalDateTime)] = timePoints.zip(timePoints.tail)
+    tuples.exists(tuple => compareDates(tuple, hours))
   }
+
+  def compareDates(dates: (LocalDateTime, LocalDateTime), hours: Int): Boolean = dates._1.plusHours(hours).isAfter(dates._2)
 }
 
 final case class LoginWithLong(user: String, ip: String, dateTime: Long) extends Login
