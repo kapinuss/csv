@@ -14,9 +14,16 @@ object CSV {
 
   def main(args: Array[String]): Unit = {
 
-    val rawLogins: List[List[String]] = readCsv("logins0.csv")
-    val logins: List[Login] = rawLogins.map(login => Login(login.head, login(1), login.last))
+    implicit val localDateOrdering: Ordering[LocalDateTime] = Ordering.by(_.toLocalTime)
 
+    val rawLogins: List[List[String]] = readCsv("logins0.csv")
+    //val logins: List[Login] = rawLogins.map(login => Login(login.head, login(1), login.last))
+
+    val logins: List[Login] = rawLogins.map(login => Login(login.head, login(1), login.last))
+    val reducedLogins: Map[String, List[Login]] = logins.groupBy(_.ip).filter(each => each._2.size > 1)
+      .map(each => (each._1, each._2.sortBy(_.dateTime)))
+    println("Size of reducedLogins " + reducedLogins.size)
+    //println(reducedLogins.take(20))
   }
 
   def readCsv(fileName: String): List[List[String]] = {
