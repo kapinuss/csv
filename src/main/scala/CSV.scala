@@ -19,11 +19,11 @@ object CSV {
     val rawLogins: List[List[String]] = readCsv("logins0.csv")
     //val logins: List[Login] = rawLogins.map(login => Login(login.head, login(1), login.last))
 
-    val logins: List[Login] = rawLogins.map(login => Login(login.head, login(1), login.last))
-    val reducedLogins: Map[String, List[Login]] = logins.groupBy(_.ip).filter(each => each._2.size > 1)
+    val logins: List[LoginWithDate] = rawLogins.map(login => Login(login.head, login(1), login.last))
+    val reducedLogins: Map[String, List[LoginWithDate]] = logins.groupBy(_.ip).filter(each => each._2.size > 1)
       .map(each => (each._1, each._2.sortBy(_.dateTime)))
     println("Size of reducedLogins " + reducedLogins.size)
-    //println(reducedLogins.take(20))
+    reducedLogins.take(20).foreach(x => println(x._2))
   }
 
   def readCsv(fileName: String): List[List[String]] = {
