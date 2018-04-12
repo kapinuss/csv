@@ -13,28 +13,21 @@ object CSV {
   def main(args: Array[String]): Unit = {
 
     val rawLogins: List[List[String]] = readCsv("logins0.csv")
-    makeResult(rawLogins)
+    val result: List[List[String]] = makeResult(rawLogins)
+    writeScv("result.csv", result)
 
   }
 
-  def makeResult(rawLogins: List[List[String]]): Map[String, List[LoginWithLong]] = {
-    println("Size of rawLogins " + rawLogins.size)
+  def makeResult(rawLogins: List[List[String]]): List[List[String]] = {
     val logins: List[LoginWithLong] = rawLogins.map(login => LoginWithLong(login.head, login(1), login.last))
     val reducedLogins: Map[String, List[LoginWithLong]] = logins.groupBy(_.ip).filter(each => each._2.size > 1)
-      .map(each => (each._1, each._2.sortBy(_.dateTime)))
-    println("Size of reducedLogins " + reducedLogins.size)
-    //reducedLogins.take(20).foreach(x => { print(x + " | ") ; val bool = LoginWithLong.isOften(x._2, 1) ; println(bool) })
-    val result: Map[String, List[LoginWithLong]] = reducedLogins.filter(x => LoginWithLong.isOften(x._2, 1))
-    println("Size of result " + result.size)
-    val list: List[PluralLogin] = result.map(x => PluralLogin(x._1, PluralLogin.formatDateFromMillis(x._2.head.dateTime),
-      PluralLogin.formatDateFromMillis(x._2.last.dateTime), "users")).toList
-    list.take(20).foreach(println)
-    result
+      .map(each => (each._1, each._2.sortBy(_.dateTime))).filter(x => LoginWithLong.isOften(x._2, 1))
+    val list: List[List[String]] = reducedLogins.map(login => List(login._1, PluralLogin.formatDateFromMillis(login._2.head.dateTime),
+      PluralLogin.formatDateFromMillis(login._2.last.dateTime), stringUsers(login._2))).toList
+    list
   }
 
-  def stringUsers(ls: List[LoginWithLong]): String = {
-    "mock"
-  }
+  def stringUsers(logins: List[LoginWithLong]): String = logins.map(login => s"${login.user}:${PluralLogin.formatDateFromMillis(login.dateTime)}").mkString(",")
 
   def readCsv(fileName: String): List[List[String]] = {
     val reader = CSVReader.open(new File(fileName))
