@@ -13,17 +13,17 @@ object CSV {
   def main(args: Array[String]): Unit = {
 
     val rawLogins: List[List[String]] = readCsv("logins0.csv")
-    system.log.info(s"Приложение запущено, прочитано ${rawLogins.size} строк из csv файла.")
-    val result: List[List[String]] = makeResult(rawLogins)
+    system.log.info(s"Приложение запущено, период 1 час, прочитано ${rawLogins.size} строк из csv файла.")
+    val result: List[List[String]] = makeResult(rawLogins, 1)
     writeScv("result.csv", result)
     system.log.info(s"Приложение закончило работу, записано ${result.size} строк в csv файл.")
 
   }
 
-  def makeResult(rawLogins: List[List[String]]): List[List[String]] = {
+  def makeResult(rawLogins: List[List[String]], hours: Int): List[List[String]] = {
     val logins: List[LoginWithLong] = rawLogins.map(login => LoginWithLong(login.head, login(1), login.last))
     val reducedLogins: Map[String, List[LoginWithLong]] = logins.groupBy(_.ip).filter(each => each._2.size > 1)
-      .map(each => (each._1, each._2.sortBy(_.dateTime))).filter(x => LoginWithLong.isOften(x._2, 1))
+      .map(each => (each._1, each._2.sortBy(_.dateTime))).filter(x => LoginWithLong.isOften(x._2, hours))
     val list: List[List[String]] = reducedLogins.map(login => List(login._1, PluralLogin.formatDateFromMillis(login._2.head.dateTime),
       PluralLogin.formatDateFromMillis(login._2.last.dateTime), stringUsers(login._2))).toList
     list
