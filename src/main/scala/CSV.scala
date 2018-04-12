@@ -1,11 +1,8 @@
 import java.io.File
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.stream.ActorMaterializer
 import com.github.tototoshi.csv.{CSVReader, CSVWriter}
-
 
 object CSV {
 
@@ -17,13 +14,16 @@ object CSV {
     implicit val localDateOrdering: Ordering[LocalDateTime] = Ordering.by(_.toLocalTime)
 
     val rawLogins: List[List[String]] = readCsv("logins0.csv")
-    //val logins: List[Login] = rawLogins.map(login => Login(login.head, login(1), login.last))
 
-    val logins: List[LoginWithDate] = rawLogins.map(login => LoginWithDate(login.head, login(1), login.last))
-    val reducedLogins: Map[String, List[LoginWithDate]] = logins.groupBy(_.ip).filter(each => each._2.size > 1)
+    val logins: List[LoginWithLong] = rawLogins.map(login => LoginWithLong(login.head, login(1), login.last))
+    val reducedLogins: Map[String, List[LoginWithLong]] = logins.groupBy(_.ip).filter(each => each._2.size > 1)//.map(each => each)
       .map(each => (each._1, each._2.sortBy(_.dateTime)))
     println("Size of reducedLogins " + reducedLogins.size)
-    reducedLogins.take(20).foreach(x => { print(x + " | ") ; val pairs = LoginWithDate.isOften(x._2) })
+    reducedLogins.take(20).foreach(x => { print(x + " | ") ; val bool = LoginWithLong.isOften(x._2, 1) ; println(bool) })
+    val result = reducedLogins
+      //.take(20)
+      .filter(x => LoginWithLong.isOften(x._2, 1))
+    result.take(10).foreach(println)
   }
 
   def readCsv(fileName: String): List[List[String]] = {

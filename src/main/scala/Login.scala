@@ -29,9 +29,17 @@ object LoginWithLong {
   def apply(nick: String, ip: String, dateTime: String): LoginWithLong = new LoginWithLong(nick, ip, performDate(dateTime))
 
   def performDate(dateTime: String): Long = LocalDateTime.parse(dateTime, formatter).atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
+
+  def isOften(logins: List[LoginWithLong], hours: Int): Boolean = {
+    val timePoints: List[Long] = logins.map(_.dateTime)
+    val tuples: List[(Long, Long)] = timePoints.zip(timePoints.tail)
+    tuples.exists(tuple => compareDates(tuple, hours))
+  }
+
+  def compareDates(dates: (Long, Long), hours: Int): Boolean = dates._1 + hours * 3600000 > dates._2
 }
 
-case class PluralLogin(ip: String, start: String, stop: String, users: String) //users = ip1:time1,ip2:time2
+case class PluralLogin(ip: String, start: String, stop: String, users: String) //users = login1:time1,login2:time2
 
 object PluralLogin {
   val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
