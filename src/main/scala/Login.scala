@@ -1,7 +1,10 @@
 import java.time.{Instant, LocalDateTime, ZoneId}
 import java.time.format.DateTimeFormatter
 
-sealed trait Login
+sealed trait Login {
+  val user: String
+  val ip: String
+}
 
 final case class LoginWithDate(user: String, ip: String, dateTime: LocalDateTime) extends Login
 
