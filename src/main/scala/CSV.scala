@@ -13,8 +13,10 @@ object CSV {
   def main(args: Array[String]): Unit = {
 
     val rawLogins: List[List[String]] = readCsv("logins0.csv")
+    system.log.info(s"Приложение запущено, прочитано ${rawLogins.size} строк из scv файла.")
     val result: List[List[String]] = makeResult(rawLogins)
     writeScv("result.csv", result)
+    system.log.info(s"Приложение закончило работу, записано ${result.size} строк в scv файл.")
 
   }
 
