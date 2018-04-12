@@ -8,22 +8,25 @@ object CSV {
 
   implicit val system: ActorSystem = ActorSystem()
   implicit val mat: ActorMaterializer = ActorMaterializer()
+  implicit val localDateOrdering: Ordering[LocalDateTime] = Ordering.by(_.toLocalTime)
 
   def main(args: Array[String]): Unit = {
 
-    implicit val localDateOrdering: Ordering[LocalDateTime] = Ordering.by(_.toLocalTime)
-
     val rawLogins: List[List[String]] = readCsv("logins0.csv")
+    makeResult(rawLogins)
 
+  }
+
+  def makeResult(rawLogins: List[List[String]]): Map[String, List[LoginWithLong]] = {
+    println("Size of rawLogins " + rawLogins.size)
     val logins: List[LoginWithLong] = rawLogins.map(login => LoginWithLong(login.head, login(1), login.last))
-    val reducedLogins: Map[String, List[LoginWithLong]] = logins.groupBy(_.ip).filter(each => each._2.size > 1)//.map(each => each)
+    val reducedLogins: Map[String, List[LoginWithLong]] = logins.groupBy(_.ip).filter(each => each._2.size > 1)
       .map(each => (each._1, each._2.sortBy(_.dateTime)))
     println("Size of reducedLogins " + reducedLogins.size)
-    reducedLogins.take(20).foreach(x => { print(x + " | ") ; val bool = LoginWithLong.isOften(x._2, 1) ; println(bool) })
-    val result = reducedLogins
-      //.take(20)
-      .filter(x => LoginWithLong.isOften(x._2, 1))
-    result.take(10).foreach(println)
+    //reducedLogins.take(20).foreach(x => { print(x + " | ") ; val bool = LoginWithLong.isOften(x._2, 1) ; println(bool) })
+    val result = reducedLogins.filter(x => LoginWithLong.isOften(x._2, 1))
+    println("Size of result " + result.size)
+    result
   }
 
   def readCsv(fileName: String): List[List[String]] = {

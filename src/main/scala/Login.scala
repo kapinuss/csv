@@ -1,4 +1,4 @@
-import java.time.{LocalDateTime, ZoneId}
+import java.time.{Instant, LocalDateTime, ZoneId}
 import java.time.format.DateTimeFormatter
 
 sealed trait Login
@@ -48,7 +48,9 @@ object PluralLogin {
 
   def apply(logins: List[LoginWithDate]): PluralLogin = new PluralLogin(logins.head.ip, logins.head.dateTime.toString, logins.last.dateTime.toString, formUsers(logins))
 
-  def performDate(dateTime: LocalDateTime): String = dateTime.format(formatter)
+  def formatDateFromDateTime(dateTime: LocalDateTime): String = dateTime.format(formatter)
+
+  def formatDateFromMillis(dateTime: Long): String = Instant.ofEpochMilli(dateTime).atZone(ZoneId.systemDefault).format(formatter)
 
   def formUsers(similarLogins: List[Login]): String = {
     "mock"
