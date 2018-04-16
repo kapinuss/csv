@@ -3,6 +3,8 @@ import java.time.LocalDateTime
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.stream.ActorMaterializer
 import com.github.tototoshi.csv.{CSVReader, CSVWriter}
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object CSV {
 
@@ -12,12 +14,12 @@ object CSV {
 
   def main(args: Array[String]): Unit = {
 
-    val rawLogins: List[List[String]] = readCsv("logins0.csv")
-    system.log.info(s"Приложение запущено, период 1 час, прочитано ${rawLogins.size} строк из csv файла.")
-    val result: List[List[String]] = makeResult(rawLogins, 1)
-    writeScv("result.csv", result)
-    system.log.info(s"Приложение закончило работу, записано ${result.size} строк в csv файл.")
-
+    for (rawLogins: List[List[String]] <- readCsv("logins0.csv")) yield {
+      system.log.info(s"Приложение запущено, период 1 час, прочитано ${rawLogins.size} строк из csv файла.")
+      val result: List[List[String]] = makeResult(rawLogins, 1)
+      writeScv("result.csv", result)
+      system.log.info(s"Приложение закончило работу, записано ${result.size} строк в csv файл.")
+    }
   }
 
   def makeResult(rawLogins: List[List[String]], hours: Int): List[List[String]] = {
@@ -31,7 +33,7 @@ object CSV {
 
   def stringUsers(logins: List[LoginWithLong]): String = logins.map(login => s"${login.user}:${PluralLogin.formatDateFromMillis(login.dateTime)}").mkString(",")
 
-  def readCsv(fileName: String): List[List[String]] = {
+  def readCsv(fileName: String): Future[List[List[String]]] = Future {
     val reader = CSVReader.open(new File(fileName))
     val result = reader.all
     reader.close
