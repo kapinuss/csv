@@ -35,15 +35,20 @@ object CSV {
   }
 
   def makeResult(rawLogins: List[List[String]], hours: Int): Future[List[List[String]]] = Future {
+
+    def stringUsers(logins: List[LoginWithLong]): String = logins
+      .map(login => s"${login.user}:${PluralLogin.formatDateFromMillis(login.dateTime)}").mkString(",")
+
     val logins: List[LoginWithLong] = rawLogins.map(login => LoginWithLong(login.head, login(1), login.last))
+
     val reducedLogins: Map[String, List[LoginWithLong]] = logins.groupBy(_.ip).filter(each => each._2.size > 1)
       .map(each => (each._1, each._2.sortBy(_.dateTime))).filter(x => LoginWithLong.isOften(x._2, hours))
+
     val list: List[List[String]] = reducedLogins.map(login => List(login._1, PluralLogin.formatDateFromMillis(login._2.head.dateTime),
       PluralLogin.formatDateFromMillis(login._2.last.dateTime), stringUsers(login._2))).toList
+
     list
   }
-
-  def stringUsers(logins: List[LoginWithLong]): String = logins.map(login => s"${login.user}:${PluralLogin.formatDateFromMillis(login.dateTime)}").mkString(",")
 
   def readCsv(fileName: String): Future[List[List[String]]] = Future {
     val reader = CSVReader.open(new File(fileName))
